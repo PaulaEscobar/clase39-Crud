@@ -1,7 +1,7 @@
 const path = require('path');
 const db = require('../database/models');
 const sequelize = db.sequelize;
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 
 //Aqui tienen una forma de llamar a cada uno de los modelos
@@ -51,23 +51,77 @@ const moviesController = {
             });
     },
     //Aqui dispongo las rutas para trabajar con el CRUD
+    
     add: function (req, res) {
-        
+        Genres.findAll()
+        .then(allGenres => {
+            res.render('moviesAdd', { title: 'New Movie', allGenres });
+        })
     },
     create: function (req,res) {
+        const {title, rating, awards, release_date, length, genre_id} = req.body;
 
+        Movies.create({
+            title,
+            rating,
+            awards,
+            release_date,
+            length,
+            genre_id
+        })
     },
     edit: function(req,res) {
+        const { id } = req.params;
 
+        Promise.all([
+            db.Movie.findByPk(id),
+            db.Genre.findAll()
+        ])
     },
     update: function (req,res) {
+        const {id} = req.params;
+        const {title, rating, awards, release_date, length, genre_id} = req.body;
 
+        Movies.update({
+            title,
+            rating,
+            awards,
+            release_date,
+            length,
+            genre_id
+        },
+        {
+            where: {
+                id: id
+            }
+        }
+        )
     },
     delete: function (req,res) {
+        const {id} = req.params
 
+        Movies.findByPk(id)
+        .then(movie =>{
+            res.render('moviesDelete', {movie: movie})
+        })
+        .catch(err=>{
+            console.log(err)
+        })
     },
     destroy: function (req,res) {
+        const {id} = req.params
 
+        Movies.destroy({
+            where: {
+                id: id
+            }
+        })
+        .then(() => {
+            res.redirect('/movies')
+        })
+        .catch(err=>{
+            console.log(err)
+        })
     }
 }
 
